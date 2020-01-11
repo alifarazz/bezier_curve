@@ -46,6 +46,9 @@ constexpr int window_height{1366}, window_width{768};
 constexpr double aspect_ratio =
     static_cast<double>(window_width) / window_height;
 
+// TODO:
+//  implement circle SDF for points
+
 int main() {
   using namespace std::string_literals;
 
