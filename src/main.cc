@@ -15,6 +15,11 @@
 #include <thread>
 namespace fs = std::filesystem;
 
+namespace {
+constexpr int window_height{1366}, window_width{768};
+constexpr double aspect_ratio =
+    static_cast<double>(window_width) / window_height;
+
 struct WorldState {
   using v2 = glm::vec2;
 
@@ -34,18 +39,31 @@ struct WorldState {
   GLuint VBO_uv;
   GLuint VBO_pos;
 
-  auto updateXY(Utils::GLFWwindowUniquePtr &window, int idx) -> void {
+
+  auto getCursorXY(Utils::GLFWwindowUniquePtr &window) -> v2 {
     double x, y;
     glfwGetCursorPos(window.get(), &x, &y);
-    this->cursor_offset.x = point_pos[idx].x - x;
-    this->cursor_offset.y = point_pos[idx].y - y;
+    return convertCursorXY(x, y);
+  }
+
+  auto convertCursorXY(double x, double y) -> v2 {
+    // God this code is bad...
+    const int xint = static_cast<int>(x);
+    const int yint = static_cast<int>(y);
+    x = static_cast<double>(xint) / window_width;
+    y = static_cast<double>(yint) / window_height;
+    y /= aspect_ratio;
+    return v2{x, y};
+  }
+
+  auto updateXY(Utils::GLFWwindowUniquePtr &window, int idx) -> void {
+    auto v = getCursorXY(window);
+    v = convertCursorXY(v.x, v.y);
+    this->cursor_offset.x = point_pos[idx].x - v.x;
+    this->cursor_offset.y = point_pos[idx].y - v.y;
   }
 } world_state;
-
-constexpr int window_height{1366}, window_width{768};
-constexpr double aspect_ratio =
-    static_cast<double>(window_width) / window_height;
-
+} // namespace
 // TODO:
 //  implement circle SDF for points
 
@@ -61,7 +79,7 @@ int main() {
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
   Utils::GLFWwindowUniquePtr window{
       glfwCreateWindow(window_height, window_width,
-                       "Shadow Mapping Example OpenGL", nullptr, nullptr)};
+                       "Bezier OpenGL", nullptr, nullptr)};
   glfwMakeContextCurrent(window.get());
   if (!window.get())
     throw std::runtime_error{"glfw window create failed"};
@@ -99,29 +117,21 @@ int main() {
 
   glBindBuffer(GL_ARRAY_BUFFER, world_state.VBO_uv);
   glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * world_state.point_uv.size(),
-               world_state.point_uv.data(), GL_DYNAMIC_DRAW);
+               world_state.point_uv.data(), GL_STATIC_DRAW);
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 
   glfwSetCursorPosCallback(window.get(), [](GLFWwindow *, double x, double y) {
-    // God this code is bad...
-    const int xint = static_cast<int>(x);
-    const int yint = static_cast<int>(y);
-    x = static_cast<double>(xint) / window_width;
-    y = static_cast<double>(yint) / window_height;
-    y /= aspect_ratio;
-    world_state.point_pos[world_state.selected_point].x = x;
-    world_state.point_pos[world_state.selected_point].y = -y;
-        // glm::vec2{static_cast<float>(x)  + world_state.cursor_offset.x,
-        //           static_cast<float>(-y) + world_state.cursor_offset.y};
-
+    auto v = world_state.convertCursorXY(x, y);
+    world_state.point_pos[world_state.selected_point] = glm::vec2{
+        v.x + world_state.cursor_offset.x, -v.y + world_state.cursor_offset.y};
     glBindBuffer(GL_ARRAY_BUFFER, world_state.VBO_pos);
     glBufferData(GL_ARRAY_BUFFER,
                  sizeof(glm::vec2) * world_state.point_pos.size(),
                  world_state.point_pos.data(), GL_DYNAMIC_DRAW);
   });
 
-  glPointSize(5.0f);
+  // glPointSize(5.0f);
   glClearColor(0.227451f, 0.227451f, 0.227451f, 1.0f);
   auto last_frame{std::chrono::high_resolution_clock::now()};
   auto current_frame{std::chrono::high_resolution_clock::now()};
