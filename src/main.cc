@@ -18,13 +18,28 @@ namespace fs = std::filesystem;
 struct WorldState {
   using v2 = glm::vec2;
 
+  v2 cursor_offset; // cursor offset vector
   int selected_point = 0;
-  std::array<glm::vec2, 3> point_pos = {v2{0.5f, -0.5f}, v2{-0.5f, -0.5f}, v2{0.0f, 0.5f},
-                                        };
-  std::array<glm::vec2, 3> point_uv = {v2{0, 0.5}, v2{0, 0}, v2{1, 0}};
+  std::array<glm::vec2, 3> point_pos = {
+      v2{-.5, -.5},
+      v2{0, .5},
+      v2{.5, -.5},
+  };
+  std::array<glm::vec2, 3> point_uv = {
+      v2{0, 0},
+      v2{.5, 0},
+      v2{1, 1},
+  };
   GLuint VAO_bezier;
   GLuint VBO_uv;
   GLuint VBO_pos;
+
+  auto updateXY(Utils::GLFWwindowUniquePtr &window, int idx) -> void {
+    double x, y;
+    glfwGetCursorPos(window.get(), &x, &y);
+    this->cursor_offset.x = point_pos[idx].x - x;
+    this->cursor_offset.y = point_pos[idx].y - y;
+  }
 } world_state;
 
 constexpr int window_height{1366}, window_width{768};
@@ -64,10 +79,6 @@ int main() {
       .attach(base_path / "shader/bezier.frag", GL_FRAGMENT_SHADER)
       .link();
 
-  // glfwSetCursorPosCallback(window.get(), [](GLFWwindow *w, double x, double
-  // y) {
-  // });
-
   // Buffers
   glUseProgram(shader_bezier.id());
   glGenVertexArrays(1, &world_state.VAO_bezier);
@@ -90,12 +101,17 @@ int main() {
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 
   glfwSetCursorPosCallback(window.get(), [](GLFWwindow *, double x, double y) {
+    // God this code is bad...
     const int xint = static_cast<int>(x);
     const int yint = static_cast<int>(y);
     x = static_cast<double>(xint) / window_width;
     y = static_cast<double>(yint) / window_height;
     y /= aspect_ratio;
-    world_state.point_pos[world_state.selected_point] = glm::vec2{x, -y};
+    world_state.point_pos[world_state.selected_point].x = x;
+    world_state.point_pos[world_state.selected_point].y = -y;
+        // glm::vec2{static_cast<float>(x)  + world_state.cursor_offset.x,
+        //           static_cast<float>(-y) + world_state.cursor_offset.y};
+
     glBindBuffer(GL_ARRAY_BUFFER, world_state.VBO_pos);
     glBufferData(GL_ARRAY_BUFFER,
                  sizeof(glm::vec2) * world_state.point_pos.size(),
@@ -112,12 +128,18 @@ int main() {
   do {
     if (glfwGetKey(window.get(), GLFW_KEY_Q) == GLFW_PRESS)
       glfwSetWindowShouldClose(window.get(), true);
-    if (glfwGetKey(window.get(), GLFW_KEY_1) == GLFW_PRESS)
+    if (glfwGetKey(window.get(), GLFW_KEY_1) == GLFW_PRESS) {
+      world_state.updateXY(window, 0);
       world_state.selected_point = 0;
-    if (glfwGetKey(window.get(), GLFW_KEY_2) == GLFW_PRESS)
+    }
+    if (glfwGetKey(window.get(), GLFW_KEY_2) == GLFW_PRESS) {
+      world_state.updateXY(window, 1);
       world_state.selected_point = 1;
-    if (glfwGetKey(window.get(), GLFW_KEY_3) == GLFW_PRESS)
+    }
+    if (glfwGetKey(window.get(), GLFW_KEY_3) == GLFW_PRESS) {
+      world_state.updateXY(window, 2);
       world_state.selected_point = 2;
+    }
     if (glfwGetKey(window.get(), GLFW_KEY_4) == GLFW_PRESS)
       ;
 
@@ -126,7 +148,7 @@ int main() {
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(shader_bezier.id());
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 3);
-    glDrawArrays(GL_POINTS, 0, 3);
+    // glDrawArrays(GL_POINTS, 0, 3);  // looks like ...!
 
     glfwSwapBuffers(window.get());
     glfwPollEvents();
