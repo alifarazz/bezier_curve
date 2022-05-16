@@ -8,7 +8,7 @@ Generated using its [webservice](https://glad.dav1d.de/) with these options:
 |-----------------------------|----------------|
 | Language                    | C/C++          |
 | Specification               | OpenGL         |
-| API - gl                    | Version 3.3    |
+| API - gl                    | Version 4.1    |
 | API - gles1                 | None           |
 | API - gles2                 | None           |
 | API - gles3                 | None           |
