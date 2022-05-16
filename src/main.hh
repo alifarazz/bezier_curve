@@ -61,12 +61,12 @@ void mouse_button_callback(GLFWwindow *window, int button, int action,
 
       if (it != ws.point_pos.end()) {
         ws.mouse_down = true;
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         ws.selected_point_idx = std::distance(ws.point_pos.begin(), it);
       }
     } else if (action == GLFW_RELEASE && ws.mouse_down == true) {
       ws.mouse_down = false;
-      glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+      // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
   }
 }
