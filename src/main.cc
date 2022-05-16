@@ -39,12 +39,14 @@ int main(int argc, char *argv[]) {
   glfwSetFramebufferSizeCallback(window, input::framebuffer_size_callback);
 
   Shader shader_bezier, shader_overlay;
-  shader_bezier.attach(shader_dir_path / "bezier.vert", GL_VERTEX_SHADER)
+  shader_bezier //
+      .attach(shader_dir_path / "bezier.vert", GL_VERTEX_SHADER)
       .attach(shader_dir_path / "bezier.tcs.glsl", GL_TESS_CONTROL_SHADER)
       .attach(shader_dir_path / "bezier.tes.glsl", GL_TESS_EVALUATION_SHADER)
       .attach(shader_dir_path / "bezier.frag", GL_FRAGMENT_SHADER)
       .link();
-  shader_overlay.attach(shader_dir_path / "overlay.vert", GL_VERTEX_SHADER)
+  shader_overlay //
+      .attach(shader_dir_path / "overlay.vert", GL_VERTEX_SHADER)
       .attach(shader_dir_path / "overlay.frag", GL_FRAGMENT_SHADER)
       .link();
 
@@ -70,10 +72,16 @@ int main(int argc, char *argv[]) {
   glBindBuffer(GL_ARRAY_BUFFER, ws.VBO_pos);
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+  glGenBuffers(1, &ws.VBO_color);
+  glBindBuffer(GL_ARRAY_BUFFER, ws.VBO_color);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * ws.point_color.size(),
+               ws.point_color.data(), GL_STATIC_DRAW);
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
-
-  glPointSize(10.0f);
-  glClearColor(0.227451f, 0.227451f, 0.227451f, 1.0f);
+  glLineWidth(gl_line_width);
+  glPointSize(gl_point_size);
+  glClearColor(gray[0], gray[1], gray[2], 1.0f);
 
   auto last_frame = std::chrono::high_resolution_clock::now();
   auto current_frame = std::chrono::high_resolution_clock::now();
@@ -105,6 +113,7 @@ int main(int argc, char *argv[]) {
   glDeleteVertexArrays(1, &ws.VAO_bezier);
   glDeleteVertexArrays(1, &ws.VAO_overlay);
   glDeleteBuffers(1, &ws.VBO_pos);
+  glDeleteBuffers(1, &ws.VBO_color);
   shader_bezier.destroy();
   glfwDestroyWindow(window);
   glfwTerminate();

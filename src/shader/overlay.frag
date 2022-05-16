@@ -1,9 +1,9 @@
 #version 410 core
 
 in vec2 vPos;
+in vec3 vColor;
 out vec3 color;
 
 void main() {
-    if (distance(gl_PointCoord, vPos) < .2)
-       color = vec3(1);
+       color = vColor;
 }

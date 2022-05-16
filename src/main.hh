@@ -21,6 +21,9 @@ namespace fs = std::filesystem;
 namespace {
 constexpr float TARGET_FPS = 60;
 constexpr auto POINT_ACTIVATION_RADIOUS = .15;
+constexpr auto gl_line_width = 1.;
+constexpr auto gl_point_size = 10.0f;
+constexpr auto gray = glm::vec3(0.227451f);
 
 struct WorldState {
   glm::i32vec2 win_sz = {1366, 767};
@@ -29,14 +32,21 @@ struct WorldState {
   int selected_point_idx = 0;
 
   using v2 = glm::vec2;
+  using v3 = glm::vec3;
   std::array<glm::vec2, 4> point_pos = {
       v2{-.5, -.5},
       v2{0, .5},
       v2{.5, 0},
       v2{.5, -.5},
   };
+  std::array<glm::vec3, 4> point_color = {
+      v3{.1, .2, .9},
+      v3{0, .9, 0},
+      v3{.9, .9, 0},
+      v3{.9, .1, .1},
+  };
   GLuint VAO_bezier, VAO_overlay;
-  GLuint VBO_pos;
+  GLuint VBO_pos, VBO_color;
 
   auto CursorUV(double x, double y) const
       -> glm::vec2 { // shitty glfw interface
@@ -55,7 +65,8 @@ void mouse_button_callback(GLFWwindow *window, int button, int action,
 
       auto uv = ws.CursorUV(x, y);
 
-      float min_dist = std::numeric_limits<float>::max(); // std::min_element and std::min
+      float min_dist =
+          std::numeric_limits<float>::max(); // std::min_element and std::min
       int idx = -1;
       for (int i = 0; i < ws.point_pos.size(); i++)
         if (auto dist = glm::distance(uv, ws.point_pos[i]); min_dist > dist) {
