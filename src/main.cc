@@ -39,7 +39,6 @@ struct WorldState {
   GLuint VBO_uv;
   GLuint VBO_pos;
 
-
   auto getCursorXY(Utils::GLFWwindowUniquePtr &window) -> v2 {
     double x, y;
     glfwGetCursorPos(window.get(), &x, &y);
@@ -178,6 +177,7 @@ int main() {
   glDeleteVertexArrays(1, &world_state.VAO_bezier);
   glDeleteBuffers(1, &world_state.VBO_pos);
   glDeleteBuffers(1, &world_state.VBO_uv);
+  shader_bezier.destroy();
+  window.reset();
   glfwTerminate();
-  return 0;
 }

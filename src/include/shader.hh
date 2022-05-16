@@ -29,7 +29,7 @@ public:
 
   Shader(); 
 
-  auto destory() -> void;
+  auto destroy() -> void;
 
   auto attach(const fs::path &shaderPath, GLenum shaderType) -> Shader &;
   auto link() -> void;
@@ -39,7 +39,7 @@ public:
 
 Shader::Shader() { program_ = glCreateProgram();}
 
-auto Shader::destory() -> void {
+auto Shader::destroy() -> void {
     glDeleteProgram(program_);
 }
 
