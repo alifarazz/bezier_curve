@@ -2,6 +2,8 @@
 
 A hardware-accelerated implementation of cubic bezier curves, using tessellation shaders.
 
+![program preview](.media/preview.gif)
+
 ~~based on Blinn-Loop's method. The method is described in their [2005 SIGGRAPH paper](https://charlesloop.com/LoopBlinn05.pdf):~~
 <!-- ~~ https://doi.org/10.1145/1073204.1073303 ~~ -->
 <!-- ~~ https://charlesloop.com/LoopBlinn05.pdf ~~ -->
