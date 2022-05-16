@@ -32,18 +32,20 @@ int main(int argc, char *argv[]) {
     exit(-3);
   }
 
-  // Handle events
+  // Handle inputs
   glfwSetMouseButtonCallback(window, input::mouse_button_callback);
   glfwSetCursorPosCallback(window, input::cursor_pos_callback);
   glfwSetKeyCallback(window, input::key_callback);
   glfwSetFramebufferSizeCallback(window, input::framebuffer_size_callback);
 
-  // compile and link shaders
   Shader shader_bezier, shader_overlay;
   shader_bezier.attach(shader_dir_path / "bezier.vert", GL_VERTEX_SHADER)
       .attach(shader_dir_path / "bezier.tcs.glsl", GL_TESS_CONTROL_SHADER)
       .attach(shader_dir_path / "bezier.tes.glsl", GL_TESS_EVALUATION_SHADER)
       .attach(shader_dir_path / "bezier.frag", GL_FRAGMENT_SHADER)
+      .link();
+  shader_overlay.attach(shader_dir_path / "overlay.vert", GL_VERTEX_SHADER)
+      .attach(shader_dir_path / "overlay.frag", GL_FRAGMENT_SHADER)
       .link();
 
   // bezier shader
@@ -58,6 +60,14 @@ int main(int argc, char *argv[]) {
   glBindBuffer(GL_ARRAY_BUFFER, ws.VBO_pos);
   glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * ws.point_pos.size(),
                ws.point_pos.data(), GL_DYNAMIC_DRAW);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+  // overlay shader
+  glUseProgram(shader_overlay.id());
+  glGenVertexArrays(1, &ws.VAO_overlay);
+  glBindVertexArray(ws.VAO_overlay);
+  glBindBuffer(GL_ARRAY_BUFFER, ws.VBO_pos);
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 
@@ -76,6 +86,10 @@ int main(int argc, char *argv[]) {
     glBindVertexArray(ws.VAO_bezier);
     glDrawArrays(GL_PATCHES, 0, 4);
 
+    glUseProgram(shader_overlay.id());
+    glBindVertexArray(ws.VAO_overlay);
+    glDrawArrays(GL_POINTS, 0, 4);
+
     glfwSwapBuffers(window);
     glfwPollEvents();
 
@@ -89,6 +103,7 @@ int main(int argc, char *argv[]) {
 
   /* CLEAN-UP */
   glDeleteVertexArrays(1, &ws.VAO_bezier);
+  glDeleteVertexArrays(1, &ws.VAO_overlay);
   glDeleteBuffers(1, &ws.VBO_pos);
   shader_bezier.destroy();
   glfwDestroyWindow(window);
