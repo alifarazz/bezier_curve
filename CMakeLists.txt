@@ -24,6 +24,7 @@ find_package(OpenGL REQUIRED)
 
 add_executable(${PROJECT_NAME}
     src/main.cc
+    src/main.hh
     src/include/shader.hh
     external/glad/src/glad.c)
 
