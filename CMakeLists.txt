@@ -1,68 +1,32 @@
-cmake_minimum_required(VERSION 3.0)
-project(bezier)
+cmake_minimum_required(VERSION 3.16)
 
-option(GLFW_BUILD_DOCS OFF)
-option(GLFW_BUILD_EXAMPLES OFF)
-option(GLFW_BUILD_TESTS OFF)
-add_subdirectory(vendor/glfw)
+project(
+  bezier
+  VERSION 1.0.0
+  LANGUAGES CXX C)
 
-# option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
-# option(ASSIMP_BUILD_SAMPLES OFF)
-# option(ASSIMP_BUILD_TESTS OFF)
-# add_subdirectory(vendor/assimp)
+set(PROJECT_IS_MAIN (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME))
 
-# option(BUILD_BULLET2_DEMOS OFF)
-# option(BUILD_CPU_DEMOS OFF)
-# option(BUILD_EXTRAS OFF)
-# option(BUILD_OPENGL3_DEMOS OFF)
-# option(BUILD_UNIT_TESTS OFF)
-# add_subdirectory(vendor/bullet)
+include(cmake/get_cpm.cmake)
 
-if(MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4") # idk
-else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -std=c++17 -pipe  -ggdb")
-    if(NOT WIN32)
-        set(GLAD_LIBRARIES dl)
-    endif()
-endif()
+CPMAddPackage(
+        NAME glfw
+        GITHUB_REPOSITORY glfw/glfw
+        GIT_TAG 3.3.7
+        OPTIONS
+          "GLFW_BUILD_TESTS OFF"
+          "GLFW_BUILD_EXAMPLES OFF"
+          "GLFW_BULID_DOCS OFF"
+          "GLFW_BUILD_INSTALL OFF"
+)
+CPMAddPackage("https://github.com/g-truc/glm.git#0.9.9.8")
+find_package(OpenGL REQUIRED)
 
-include_directories(src/include/
-                    # vendor/assimp/include/
-                    vendor/stb/
-                    # vendor/bullet/src/
-                    vendor/glad/
-                    # vendor/glfw/include/
-                    vendor/glm/
-                    )
+add_executable(${PROJECT_NAME}
+    src/main.cc
+    src/include/shader.hh
+    external/glad/src/glad.c)
 
-file(GLOB VENDORS_SOURCES vendor/glad/glad.c)
-file(GLOB PROJECT_HEADERS src/include/*.hh)
-file(GLOB PROJECT_SOURCES src/*.cc src/*.c)
-file(GLOB PROJECT_SHADERS shader/*.comp
-                          shader/*.frag
-                          shader/*.geom
-                          shader/*.vert)
-
-file(GLOB PROJECT_CONFIGS CMakeLists.txt
-                          Readme.md
-                         .gitattributes
-                         .gitignore
-                         .gitmodules)
-
-source_group("src/include" FILES ${PROJECT_HEADERS})
-source_group("shader" FILES ${PROJECT_SHADERS})
-source_group("src" FILES ${PROJECT_SOURCES})
-source_group("vendor" FILES ${VENDORS_SOURCES})
-
-add_definitions(-DGLFW_INCLUDE_NONE
-                -DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
-add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
-                               ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
-                               ${VENDORS_SOURCES})
-target_link_libraries(${PROJECT_NAME} glfw
-                      ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
-#                      BulletDynamics BulletCollision LinearMath
-                      )
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+target_include_directories(${PROJECT_NAME} PUBLIC external/glad/include/)
+target_link_libraries(${PROJECT_NAME} glfw glm::glm OpenGL::GL ${CMAKE_DL_LIBS})

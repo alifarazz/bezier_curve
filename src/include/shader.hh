@@ -1,7 +1,6 @@
 #pragma once
 
-
-#include <glad/glad.h>
+// #include <glad/glad.h>
 
 #include <filesystem>
 #include <fstream>
@@ -9,8 +8,6 @@
 #include <iterator>
 #include <vector>
 namespace fs = std::filesystem;
-
-#include "utils.hh"
 
 class Shader {
 private:
