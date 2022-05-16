@@ -54,15 +54,19 @@ void mouse_button_callback(GLFWwindow *window, int button, int action,
       glfwGetCursorPos(window, &x, &y);
 
       auto uv = ws.CursorUV(x, y);
-      auto pred = [uv](const auto pos) {
-        return glm::distance(uv, pos) < POINT_ACTIVATION_RADIOUS;
-      };
-      auto it = std::find_if(ws.point_pos.begin(), ws.point_pos.end(), pred);
 
-      if (it != ws.point_pos.end()) {
+      float min_dist = std::numeric_limits<float>::max(); // std::min_element and std::min
+      int idx = -1;
+      for (int i = 0; i < ws.point_pos.size(); i++)
+        if (auto dist = glm::distance(uv, ws.point_pos[i]); min_dist > dist) {
+          min_dist = dist;
+          idx = i;
+        }
+
+      if (idx >= 0 && min_dist < POINT_ACTIVATION_RADIOUS) {
         ws.mouse_down = true;
         // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        ws.selected_point_idx = std::distance(ws.point_pos.begin(), it);
+        ws.selected_point_idx = idx;
       }
     } else if (action == GLFW_RELEASE && ws.mouse_down == true) {
       ws.mouse_down = false;
