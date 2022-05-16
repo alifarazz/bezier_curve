@@ -6,7 +6,7 @@ https://doi.org/10.1145/1073204.1073303
 
 https://charlesloop.com/LoopBlinn05.pdf
 
-Written in C++17 and OpenGL 3.3.
+Written in C++17 and OpenGL 4.1.
 
 
 To compile the project, make sure you have a working Internet connection, and have Cmake installed:
