@@ -66,8 +66,15 @@ struct WorldState {
 // TODO:
 //  implement circle SDF for points
 
-int main() {
+int main(int argc, char *argv[]) {
   using namespace std::string_literals;
+
+  if (argc != 2) {
+    std::cout << "Please specify shader directory, for example:\n\t"
+              << "$ ./bezier \"../shader/\"\n";
+    exit(-1);
+  }
+  const auto shader_dir_path = std::filesystem::path{argv[1]};
 
   // std::setlocale(LC_ALL, "POSIX");
 
@@ -76,9 +83,10 @@ int main() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-  Utils::GLFWwindowUniquePtr window{
-      glfwCreateWindow(window_height, window_width,
-                       "Bezier OpenGL", nullptr, nullptr)};
+
+  // Get window from glfw + init GLAD
+  auto window = Utils::GLFWwindowUniquePtr(glfwCreateWindow(
+      window_height, window_width, "Bezier OpenGL", nullptr, nullptr));
   glfwMakeContextCurrent(window.get());
   if (!window.get())
     throw std::runtime_error{"glfw window create failed"};
@@ -93,10 +101,9 @@ int main() {
   // Grab cursor
   glfwSetInputMode(window.get(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-  const auto base_path{fs::current_path() / "../../"};
   Shader shader_bezier;
-  shader_bezier.attach(base_path / "shader/bezier.vert", GL_VERTEX_SHADER)
-      .attach(base_path / "shader/bezier.frag", GL_FRAGMENT_SHADER)
+  shader_bezier.attach(shader_dir_path / "bezier.vert", GL_VERTEX_SHADER)
+      .attach(shader_dir_path / "bezier.frag", GL_FRAGMENT_SHADER)
       .link();
 
   // Buffers
