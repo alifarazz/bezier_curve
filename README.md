@@ -10,7 +10,7 @@ A hardware-accelerated implementation of cubic bezier curves, using tessellation
 
 Written in `C++17` and `OpenGL 4.1`. To compile the project, make sure you have a working Internet connection, and have `cmake` installed:
 ``` sh
-$ git clone https://github.com/alifarazz/bezier_curve.git gh_alifarazz_bezier_curve
+$ git clone https://codeberg.org/alifara/bezier_curve.git gh_alifarazz_bezier_curve
 $ cd gh_alifarazz_bezier_curve
 $ cmake -DCMAKE_BUILD_TYPE=Release -B build/ -S .
 $ cmake --build build -t bezier -j
