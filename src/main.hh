@@ -13,7 +13,8 @@
 #include <array>
 #include <chrono>
 #include <filesystem>
-#include <memory>
+// #include <memory>
+#include <optional>
 #include <thread>
 
 namespace fs = std::filesystem;
@@ -54,6 +55,16 @@ struct WorldState {
             std::clamp(2 * ((win_sz.y - y) / win_sz.y - .5), -1., 1.)};
   }
 } ws;
+
+namespace resrc::path {
+std::optional<fs::path> find_shader_folder(int argc, char *argv[]) {
+  if (auto path = (argc < 2) ? fs::current_path() / "../src/shader/"
+                             : fs::path{argv[1]};
+      fs::exists(path))
+    return path;
+  return {};
+}
+} // namespace resrc::path
 
 namespace input {
 void mouse_button_callback(GLFWwindow *window, int button, int action,

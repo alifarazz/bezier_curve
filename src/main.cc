@@ -3,12 +3,13 @@
 int main(int argc, char *argv[]) {
   using namespace std::string_literals;
 
-  if (argc != 2) {
+  auto maybe_shader_dir = resrc::path::find_shader_folder(argc, argv);
+  if (!maybe_shader_dir.has_value()) {
     std::cout << "Please specify shader directory, for example:\n\t"
               << "$ ./bezier \"../src/shader/\"\n";
     exit(-1);
   }
-  const auto shader_dir_path = fs::path{argv[1]};
+  const auto shader_dir_path = maybe_shader_dir.value();
 
   // std::setlocale(LC_ALL, "POSIX");
 
