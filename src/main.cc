@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
   glGenBuffers(1, &ws.VBO_pos);
 
   glBindBuffer(GL_ARRAY_BUFFER, ws.VBO_pos);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * ws.point_pos.size(),
+  glBufferData(GL_ARRAY_BUFFER, sizeof(Imath::V2f) * ws.point_pos.size(),
                ws.point_pos.data(), GL_DYNAMIC_DRAW);
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
@@ -75,14 +75,14 @@ int main(int argc, char *argv[]) {
   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
   glGenBuffers(1, &ws.VBO_color);
   glBindBuffer(GL_ARRAY_BUFFER, ws.VBO_color);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * ws.point_color.size(),
+  glBufferData(GL_ARRAY_BUFFER, sizeof(Imath::V3f) * ws.point_color.size(),
                ws.point_color.data(), GL_STATIC_DRAW);
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
   glLineWidth(gl_line_width);
   glPointSize(gl_point_size);
-  glClearColor(gray[0], gray[1], gray[2], 1.0f);
+  glClearColor(gray.x, gray.y, gray.z, 1.0f);
 
   auto last_frame = std::chrono::high_resolution_clock::now();
   auto current_frame = std::chrono::high_resolution_clock::now();

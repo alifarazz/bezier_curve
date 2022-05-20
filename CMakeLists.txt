@@ -19,7 +19,11 @@ CPMAddPackage(
           "GLFW_BULID_DOCS OFF"
           "GLFW_BUILD_INSTALL OFF"
 )
-CPMAddPackage("https://github.com/g-truc/glm.git#0.9.9.8")
+# CPMAddPackage("https://github.com/g-truc/glm.git#0.9.9.8")
+CPMAddPackage("https://github.com/AcademySoftwareFoundation/Imath.git#v3.1.5")
+if (Imath_ADDED)
+  target_include_directories(Imath INTERFACE "$<BUILD_INTERFACE:${Imath_SOURCE_DIR}/src/*.h>")
+endif()
 find_package(OpenGL REQUIRED)
 
 add_executable(${PROJECT_NAME}
@@ -31,4 +35,4 @@ add_executable(${PROJECT_NAME}
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 target_include_directories(${PROJECT_NAME} PUBLIC external/glad/include/)
-target_link_libraries(${PROJECT_NAME} glfw glm::glm OpenGL::GL ${CMAKE_DL_LIBS})
+target_link_libraries(${PROJECT_NAME} glfw Imath OpenGL::GL ${CMAKE_DL_LIBS})
