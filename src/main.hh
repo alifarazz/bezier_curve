@@ -4,8 +4,6 @@
 
 #include <GLFW/glfw3.h>
 
-#include <Imath/ImathVec.h>
-
 #include "include/shader.hh"
 
 #include <algorithm>
@@ -19,42 +17,43 @@
 namespace fs = std::filesystem;
 
 namespace {
+using V2i = std::array<int, 2>;
+using V2f = std::array<float, 2>;
+using V3f = std::array<float, 3>;
+
+constexpr float gray = 0.227451f;
 constexpr float TARGET_FPS = 60;
 constexpr auto POINT_ACTIVATION_RADIOUS = .15;
 constexpr auto POINT_ACTIVATION_RADIOUS2 =
     POINT_ACTIVATION_RADIOUS * POINT_ACTIVATION_RADIOUS;
 constexpr auto gl_line_width = 1.;
 constexpr auto gl_point_size = 10.0f;
-constexpr auto gray = Imath::V3f(0.227451f);
 
 struct WorldState {
-  Imath::V2i win_sz = {1366, 767};
-  /* Imath::V2i win_sz = {600, 600}; */
+  V2i win_sz = {1366, 767};
+  /* V2i win_sz = {600, 600}; */
   bool mouse_down = false;
   int selected_point_idx = 0;
 
-  using v2 = Imath::V2f;
-  using v3 = Imath::V3f;
-  std::array<v2, 4> point_pos = {
-      v2{-.5, -.5},
-      v2{0, .5},
-      v2{.5, 0},
-      v2{.5, -.5},
+  std::array<V2f, 4> point_pos = {
+      -.5, -.5, //
+      0,   .5,  //
+      .5,  0,   //
+      .5,  -.5,
   };
-  std::array<v3, 4> point_color = {
-      v3{.1, .2, .9},
-      v3{0, .9, 0},
-      v3{.9, .9, 0},
-      v3{.9, .1, .1},
+  std::array<V3f, 4> point_color = {
+      .1, .2, .9, //
+      0,  .9, 0,  //
+      .9, .9, 0,  //
+      .9, .1, .1,
   };
   GLuint VAO_bezier, VAO_overlay;
   GLuint VBO_pos, VBO_color;
 
-  auto CursorUV(double x, double y) const
-      -> Imath::V2f { // shitty glfw interface
-    return Imath::V2f(
-        std::clamp(2 * (x / win_sz.x - .5), -1., 1.),
-        std::clamp(2 * ((win_sz.y - y) / win_sz.y - .5), -1., 1.));
+  auto CursorUV(double dx, double dy) const -> V2f { // shitty glfw interface
+    float x = x, y = y;
+    return {std::clamp(2 * (x / win_sz[0] - .5f), -1.f, 1.f),
+            std::clamp(2 * ((win_sz[1] - y) / win_sz[1] - .5f), -1.f, 1.f)};
   }
 } ws;
 
@@ -67,6 +66,11 @@ std::optional<fs::path> find_shader_folder(int argc, char *argv[]) {
   return {};
 }
 } // namespace resrc::path
+
+inline float length2(const V2f &a, const V2f &b) {
+  auto dx = a[0] - b[0], dy = a[1] - b[1];
+  return dx * dx + dy * dy;
+}
 
 namespace input {
 void mouse_button_callback(GLFWwindow *window, int button, int action,
@@ -82,7 +86,7 @@ void mouse_button_callback(GLFWwindow *window, int button, int action,
           std::numeric_limits<float>::max(); // std::min_element and std::min
       int idx = -1;
       for (int i = 0; i < ws.point_pos.size(); i++)
-        if (auto dist = (uv - ws.point_pos[i]).length2(); min_dist > dist) {
+        if (auto dist = length2(uv, ws.point_pos[i]); min_dist > dist) {
           min_dist = dist;
           idx = i;
         }
@@ -107,7 +111,7 @@ void cursor_pos_callback(GLFWwindow *, double x, double y) {
   ws.point_pos[ws.selected_point_idx] = uv;
   glBindBuffer(GL_ARRAY_BUFFER,
                ws.VBO_pos); // FIXME: only copy the value which is changed
-  glBufferData(GL_ARRAY_BUFFER, sizeof(Imath::V2f) * ws.point_pos.size(),
+  glBufferData(GL_ARRAY_BUFFER, sizeof(V2f) * ws.point_pos.size(),
                ws.point_pos.data(), GL_DYNAMIC_DRAW);
 }
 
@@ -119,8 +123,8 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
 
 void framebuffer_size_callback(GLFWwindow *, int w, int h) {
   glViewport(0, 0, w, h);
-  ws.win_sz.y = h;
-  ws.win_sz.x = w;
+  ws.win_sz[1] = h;
+  ws.win_sz[0] = w;
 }
 
 } // namespace input
