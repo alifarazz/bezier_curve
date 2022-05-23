@@ -11,6 +11,7 @@
 #include <chrono>
 #include <filesystem>
 // #include <memory>
+#include <iterator>
 #include <optional>
 #include <thread>
 
@@ -30,7 +31,7 @@ constexpr auto gl_line_width = 1.;
 constexpr auto gl_point_size = 10.0f;
 
 struct WorldState {
-  V2i win_sz = {1366, 767};
+  V2i win_sz = {1366, 768};
   /* V2i win_sz = {600, 600}; */
   bool mouse_down = false;
   int selected_point_idx = 0;
@@ -50,10 +51,11 @@ struct WorldState {
   GLuint VAO_bezier, VAO_overlay;
   GLuint VBO_pos, VBO_color;
 
-  auto CursorUV(double dx, double dy) const -> V2f { // shitty glfw interface
-    float x = x, y = y;
-    return {std::clamp(2 * (x / win_sz[0] - .5f), -1.f, 1.f),
-            std::clamp(2 * ((win_sz[1] - y) / win_sz[1] - .5f), -1.f, 1.f)};
+  auto CursorUV(double x, double y) const -> V2f { // shitty glfw interface
+    auto xx = static_cast<float>(x);
+    auto yy = static_cast<float>(y);
+    return {std::clamp(2 * (xx / win_sz[0] - .5f), -1.f, 1.f),
+            std::clamp(2 * ((win_sz[1] - yy) / win_sz[1] - .5f), -1.f, 1.f)};
   }
 } ws;
 
@@ -85,13 +87,14 @@ void mouse_button_callback(GLFWwindow *window, int button, int action,
       float min_dist =
           std::numeric_limits<float>::max(); // std::min_element and std::min
       int idx = -1;
-      for (int i = 0; i < ws.point_pos.size(); i++)
+      for (int i = 0; i < ws.point_pos.size(); i++) {
         if (auto dist = length2(uv, ws.point_pos[i]); min_dist > dist) {
           min_dist = dist;
           idx = i;
         }
+      }
 
-      if (idx >= 0 && min_dist < POINT_ACTIVATION_RADIOUS) {
+      if (idx >= 0 && min_dist < POINT_ACTIVATION_RADIOUS2) {
         ws.mouse_down = true;
         // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         ws.selected_point_idx = idx;
@@ -109,10 +112,10 @@ void cursor_pos_callback(GLFWwindow *, double x, double y) {
 
   auto uv = ws.CursorUV(x, y);
   ws.point_pos[ws.selected_point_idx] = uv;
-  glBindBuffer(GL_ARRAY_BUFFER,
-               ws.VBO_pos); // FIXME: only copy the value which is changed
-  glBufferData(GL_ARRAY_BUFFER, sizeof(V2f) * ws.point_pos.size(),
-               ws.point_pos.data(), GL_DYNAMIC_DRAW);
+  glBindBuffer(GL_ARRAY_BUFFER, ws.VBO_pos);
+  glBufferSubData(GL_ARRAY_BUFFER, ws.selected_point_idx * sizeof(V2f),
+                  sizeof(V2f),
+                  std::next(ws.point_pos.begin(), ws.selected_point_idx));
 }
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action,

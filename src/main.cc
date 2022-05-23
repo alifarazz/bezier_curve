@@ -84,6 +84,8 @@ int main(int argc, char *argv[]) {
   glPointSize(gl_point_size);
   glClearColor(gray, gray, gray, 1.0f);
 
+  std::cout << "Before render-loop: GLerror = " << glGetError() << std::endl;
+
   auto last_frame = std::chrono::high_resolution_clock::now();
   auto current_frame = std::chrono::high_resolution_clock::now();
   auto delta_time = current_frame - last_frame;
@@ -118,4 +120,6 @@ int main(int argc, char *argv[]) {
   shader_bezier.destroy();
   glfwDestroyWindow(window);
   glfwTerminate();
+
+  std::cout << "After cleanup: GLerror = " << glGetError() << std::endl;
 }
